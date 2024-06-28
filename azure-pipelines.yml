@@ -3,3 +3,42 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+trigger:
+- none
+
+pool:
+ vmImage: 'windows-latest'
+
+variables:
+ buildPlatform: 'Any CPU'
+ buildConfiguration: 'Release'
+ solution: '**/RoundTheCode.AzureTestProject.sln'
+ project: '**/RoundTheCode.AzureTestProject.csproj'
+
+steps:
+- task: NuGetToolInstaller@1
+  name: 'NugetToolInstaller'
+  displayName: 'NuGet tool installer'
+
+- task: NuGetCommand@2
+  name: 'NugetRestore'
+  displayName: 'NuGet restore packages'
+  inputs:
+    command: 'restore'
+    restoreSolution: '$(solution)'
+    feedsToUse: 'select'
+- task: DotNetCoreCLI@2
+  name: 'Tests'
+  displayName: 'Run Tests'
+  inputs:
+    command: 'test'
+    projects: '$(solution)'
+    arguments: '--configuration $(BuildConfiguration)'
+
+- task: PublishBuildArtifacts@1
+  name: 'PublishBuildArtifacts'
+  displayName: 'Publish build artifacts'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'AzureTestProject'
+    publishLocation: 'Container'
